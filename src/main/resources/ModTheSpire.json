@@ -1,0 +1,13 @@
+{
+  "modid": "HuiName",
+  "name": "以辉之名",
+  "author_list": ["HuiName"],
+  "description": "将所有 hui、fei 等字改成辉",
+  "version": "1.0.0",
+  "sts_version": "12-22-2020",
+  "mts_version": "3.23.2",
+  "dependencies": ["basemod"]
+}
+
+
+

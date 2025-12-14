@@ -3,6 +3,7 @@ package huiname.patches;
 import huiname.HuiNameConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.localization.LocalizedStrings;
 
 import java.lang.reflect.Field;
@@ -61,27 +62,31 @@ public class TextReplacePatches {
         }
     }
 
+    private static void performReplacement(LocalizedStrings localizedStrings) {
+        Field[] fields = LocalizedStrings.class.getDeclaredFields();
+        for (Field f : fields) {
+            f.setAccessible(true);
+            try {
+                Object fieldValue = f.get(localizedStrings);
+                if (fieldValue instanceof Map) {
+                    Map<?, ?> map = (Map<?, ?>) fieldValue;
+                    for (Object value : map.values()) {
+                        replaceFields(value);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     // Patch LocalizedStrings 构造方法，在所有文本加载完成后统一替换
     @SpirePatch(clz = LocalizedStrings.class, method = SpirePatch.CONSTRUCTOR)
     public static class LocalizedStringsPatch {
         @SpirePostfixPatch
         public static void Postfix(LocalizedStrings __instance) {
             System.out.println("HuiName: Starting text replacement...");
-            Field[] fields = LocalizedStrings.class.getDeclaredFields();
-            for (Field f : fields) {
-                f.setAccessible(true);
-                try {
-                    Object fieldValue = f.get(__instance);
-                    if (fieldValue instanceof Map) {
-                        Map<?, ?> map = (Map<?, ?>) fieldValue;
-                        for (Object value : map.values()) {
-                            replaceFields(value);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+            performReplacement(__instance);
             System.out.println("HuiName: Text replacement complete.");
         }
     }

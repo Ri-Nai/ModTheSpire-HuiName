@@ -23,23 +23,7 @@ public class HuiName implements PostInitializeSubscriber {
     public void receivePostInitialize() {
         // 创建 Mod 配置菜单
         ModPanel settingsPanel = new ModPanel();
-        
-        ModLabel label = new ModLabel("配置已加载。请修改游戏根目录下的 HuiNameConfig.json 文件来自定义替换规则。", 
-                350.0f, 700.0f, settingsPanel, (me) -> {});
-        settingsPanel.addUIElement(label);
-        
-        ModLabel label2 = new ModLabel("修改后点击下方按钮重载配置，或重启游戏。", 
-                350.0f, 650.0f, settingsPanel, (me) -> {});
-        settingsPanel.addUIElement(label2);
-
-        ModButton reloadBtn = new ModButton(350.0f, 600.0f, settingsPanel, (me) -> {
-            HuiNameConfig.load();
-            System.out.println("HuiName: Config reloaded.");
-        });
-        settingsPanel.addUIElement(reloadBtn);
-        
-        ModLabel reloadLabel = new ModLabel("重载配置", 450.0f, 615.0f, settingsPanel, (me) -> {});
-        settingsPanel.addUIElement(reloadLabel);
+        HuiNameConfigUI.initialize(settingsPanel);
 
         // 注册 Mod Badge
         // 使用游戏自带的图标作为 Badge 图标

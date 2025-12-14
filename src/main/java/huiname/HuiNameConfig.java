@@ -1,16 +1,18 @@
 package huiname;
 
+import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 public class HuiNameConfig {
-    private static final String CONFIG_FILE_NAME = "HuiNameConfig.json";
+    private static final String MOD_NAME = "HuiName";
+    private static final String CONFIG_NAME = "HuiNameConfig";
     public static ConfigData data;
 
     public static class ReplacementRule {
@@ -28,41 +30,58 @@ public class HuiNameConfig {
     }
 
     public static void load() {
-        File file = new File(CONFIG_FILE_NAME);
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-        if (!file.exists()) {
-            createDefaultConfig(file, gson);
-        } else {
-            try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-                data = gson.fromJson(reader, ConfigData.class);
-                if (data == null) {
-                    createDefaultConfig(file, gson);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                createDefaultConfig(file, gson);
+        try {
+            Properties defaults = new Properties();
+            SpireConfig config = new SpireConfig(MOD_NAME, CONFIG_NAME, defaults);
+            config.load();
+            
+            String json = config.getString("data");
+            Gson gson = new Gson();
+            
+            if (json != null && !json.isEmpty()) {
+                data = gson.fromJson(json, ConfigData.class);
             }
+            
+            if (data == null) {
+                loadDefaultFromResource();
+                save();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            loadDefaultFromResource();
         }
     }
 
-    private static void createDefaultConfig(File file, Gson gson) {
+    public static void resetToDefault() {
+        loadDefaultFromResource();
+        save();
+    }
+
+    private static void loadDefaultFromResource() {
+        Gson gson = new Gson();
         try (InputStream is = HuiNameConfig.class.getResourceAsStream("/default_config.json")) {
             if (is != null) {
                 try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
                     data = gson.fromJson(reader, ConfigData.class);
                 }
-            } else {
-                data = new ConfigData(); // Fallback if resource not found
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        
+        if (data == null) {
             data = new ConfigData();
         }
+    }
 
-        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            gson.toJson(data, writer);
-        } catch (IOException e) {
+    public static void save() {
+        try {
+            SpireConfig config = new SpireConfig(MOD_NAME, CONFIG_NAME);
+            Gson gson = new Gson();
+            String json = gson.toJson(data);
+            config.setString("data", json);
+            config.save();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
